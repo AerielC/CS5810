@@ -1,0 +1,107 @@
+% -------------------------------------------------------------------------
+%                           CS5810 Coursework
+%                           K-Means Clustering
+% -------------------------------------------------------------------------
+% This coursework groups the observations in a data matrix using kmeans
+% clustering. There are two datasets used
+%   - Escherichia coli (Ecoli)      : consists of 3500 genes and their response
+%                                     to arylamide compound PMX 10070 over time
+%   - Human Hereditary Disease(HHD) : consist of 3D points of the 661
+%                                     hereditary diseases
+%
+% The observations are clustered according to their distance or
+% similarities between other observations. Distance metrics used are
+% Euclidean and Correlation. 
+%
+% CW5810 requires the following m-files to work properly:
+%       - kmeansCW.m                : computes for the clusters using kmeans
+%       - plotgeneCW.m              : plots the clustered gene expressions (Ecoli dataset)
+%       - plothhdCW.m               : plots 3D clustered data (HHD dataset)
+%       - txtCW.m                   : saves the output on a text file
+%
+% Additional function
+%       - retrieve.m                : retrieves the observations(Gene expressions HHD profiles)
+%                                     present in the desired cluster  
+%     
+%       
+%
+% To start the program type "CW5810" on your Matlab command window.
+% -------------------------------------------------------------------------
+
+clc
+clear
+%% Data Pre-processing
+
+% Ecoli Dataset
+Genes = importdata('EcoliDatasetCW5810_truncated.txt');
+name = Genes.textdata(:,1);                                                 % gene identifiers
+Gvalues = [mean(Genes.data(:,1:3),2), mean(Genes.data(:,4:6),2),...         % transformed matrix
+           mean(Genes.data(:,7:9),2),mean(Genes.data(:,10:12),2),...
+           mean(Genes.data(:,13:15),2),mean(Genes.data(:,16:18),2)];
+
+% Human Hereditary Disease Dataset
+Labels = importdata('labels');                                              % disease labels
+fo3 = importdata('3d_filtered_outfile.txt');                                % disease points in 3D
+
+%% User inputs
+k = input('How many clusters?:  ');      % observations are the gene expressions
+fig = input('Figure # :');               % careful with the figure number as it might overwrite previous figures
+%% Main Loop
+disp('%  Main Loop consist of five cases. The first four cases vary according    %'); 
+disp('%  to the dataset and distance metric used. Cases 1 and 2 return the       %');
+disp('%  SSD plot and the clustered gene expressions. While Cases 3 and 4 return %');
+disp('%  a colored 3Dplot. Finally Case 5 plots a 3D dataset with given labels   %');
+disp('%                                                                          %');
+disp('% Case 1: Dataset : Gene Expression   Distance: Euclidean                  %');
+disp('% Case 2: Dataset : Gene Expression   Distance: Correlation                %');
+disp('% Case 3: Dataset : Human Hereditary  Disease Distance: Euclidean          %');
+disp('% Case 4: Dataset : Human Hereditary  Disease Distance: Correlation        %');
+disp('% Case 5: Dataset : Human Hereditary Disease w/ labels(3D scatterplot)     %');
+disp('     ');
+
+choice = input('Case: '); 
+switch(choice)
+    case 1
+%%      Dataset : Gene Expression                    Distance: Euclidean
+        figure(fig);
+        [clusters,ind,fcentroids] = kmeansCW(Gvalues, k, 'euclidean');               
+        fig = fig + 1; figure(fig);         
+        plotgeneCW(Gvalues, k,clusters, fcentroids);                        % plot gene expressions for k clusters
+        txtCW(Gvalues,ind,name,['GeneExpEuc' num2str(k) '.txt']);           % output text file
+        fig = fig + 1;
+    case 2
+%%      Dataset : Gene Expression                    Distance: Correlation
+        figure(fig);
+        [clusters,ind,fcentroids] = kmeansCW(Gvalues, k, 'correlation');              
+        fig = fig + 1; figure(fig);
+        plotgeneCW(Gvalues, k,clusters,fcentroids);                         % plot gene expressions for k clusters
+        txtCW(Gvalues,ind,name,['GeneExpCorr' num2str(k) '.txt']);          % output text file for k clusters
+        fig = fig + 1;
+    case 3
+%%      Dataset : Human Hereditary Diseases          Distance: Euclidean
+        figure(fig);
+        [clusters,ind] = kmeansCW(fo3, k, 'euclidean');
+        fig = fig + 1; figure(fig);
+        plothhdCW(fo3, k,ind);                                              % plot Human Hereditary diseases for k clusters       
+        txtCW(fo3,ind,Labels,['3D_HHDEuc' num2str(k) '.txt']);              % output text file for k clusters
+        fig = fig + 1;
+    case 4
+ %%     Dataset : Human Hereditary Diseases          Distance: Correlation
+        figure(fig);
+        [clusters,ind] = kmeansCW(fo3, k, 'correlation');
+        fig = fig + 1; figure(fig);
+        plothhdCW(fo3, k,ind);                                              % plot Human Hereditary diseases for k clusters  
+        txtCW(fo3,ind,Labels,['3D_HHDCorr' num2str(k) '.txt']);             % output text file for k clusters
+        fig = fig + 1;
+    case 5
+%% Plotting of Human Hereditary Diesease with Labels
+        figure(fig);
+        plothhdCW(fo3,10,Labels);                                           % fixed k = 10  
+        fig = fig + 1;
+end
+%% Data retrieval
+% retrieve(filename, k);             % make sure that the number of k 
+                                     % indicated here is the actual number 
+                                     % of clusters in the specific file
+%%
+disp(' ');
